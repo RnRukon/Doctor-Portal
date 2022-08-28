@@ -88,6 +88,7 @@ async function run() {
             const result = await usersCollection.insertOne(user)
             res.json(result)
         })
+        
         // update user=======================
         app.put('/users', async (req, res) => {
             const user = req.body;
