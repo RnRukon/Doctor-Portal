@@ -46,6 +46,7 @@ async function run() {
         await client.connect();
         const database = client.db('Doctor_Portal');
         const appointmentsCollection = database.collection('appointments');
+        const bookingsCollection = database.collection('bookings');
         const usersCollection = database.collection('users');
         const doctorsCollection = database.collection('doctors');
 
@@ -63,8 +64,44 @@ async function run() {
         app.post('/appointments', verifyToken, async (req, res) => {
             const appointment = req.body;
             const result = await appointmentsCollection.insertOne(appointment)
-            res.json(result)
+            res.status(200).json(result);
         })
+        app.post('/bookings', verifyToken, async (req, res) => {
+            try {
+                const bookings = req.body;
+                const result = await bookingsCollection.insertMany(bookings)
+                res.json(result)
+            } catch (error) {
+                res.status(400).json('Server Error');
+            }
+        })
+        app.get('/bookings', verifyToken, async (req, res) => {
+            try {
+                const result = await bookingsCollection.find().toArray();
+                res.status(200).json(result)
+            } catch (error) {
+                res.status(400).json('Server Error');
+            }
+        })
+        app.patch('/bookings/:id', verifyToken, async (req, res) => {
+            try {
+                const id = req.params.id;
+                const X = req.body.x;
+                const Y = req.body.y;
+                const options = { upsert: true };
+                const filter = { _id: ObjectId(id) };
+                const updateDoc = { $set: { dragElement: { x: X, y: Y } } }
+                const result = await bookingsCollection.updateOne(filter, updateDoc, options);
+                res.status(200).json(result);
+            }
+            catch (err) {
+                res.status(400).json("Server Error")
+            }
+
+        })
+        
+
+
         // get admin-----------------------
         app.get('/users/:email', async (req, res) => {
             const email = req.params.email;
@@ -140,7 +177,7 @@ async function run() {
         })
 
         app.post('/doctors', async (req, res) => {
-            const doctor =req.body;
+            const doctor = req.body;
             const result = await doctorsCollection.insertOne(doctor);
             res.json(result)
         })
